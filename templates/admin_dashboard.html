@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - IntelliDesk{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+    <div>
+        <h1>Admin Dashboard</h1>
+        <p>Manage and monitor all support tickets</p>
+    </div>
+    <a href="/analytics" class="btn-id">
+        <i class="bi bi-bar-chart me-1"></i>View Analytics
+    </a>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-ticket-detailed"></i></div>
+            <div>
+                <div class="stat-value">{{ total }}</div>
+                <div class="stat-label">Total Tickets</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="bi bi-circle"></i></div>
+            <div>
+                <div class="stat-value">{{ open_count }}</div>
+                <div class="stat-label">Open</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-arrow-repeat"></i></div>
+            <div>
+                <div class="stat-value">{{ in_progress_count }}</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+            <div>
+                <div class="stat-value">{{ closed_count }}</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tickets Table with Filters -->
+<div class="id-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0;">All Tickets</h2>
+    </div>
+
+    <!-- Filter Bar -->
+    <form method="GET" action="/admin" class="filter-bar">
+        <span style="font-size: 0.82rem; color: var(--id-text-muted); font-weight: 600;">Filter:</span>
+        <select name="status" onchange="this.form.submit()">
+            <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Status</option>
+            <option value="open" {% if current_status == 'open' %}selected{% endif %}>Open</option>
+            <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="closed" {% if current_status == 'closed' %}selected{% endif %}>Closed</option>
+        </select>
+        <select name="category" onchange="this.form.submit()">
+            <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
+            <option value="network" {% if current_category == 'network' %}selected{% endif %}>Network</option>
+            <option value="software" {% if current_category == 'software' %}selected{% endif %}>Software</option>
+            <option value="hardware" {% if current_category == 'hardware' %}selected{% endif %}>Hardware</option>
+            <option value="access" {% if current_category == 'access' %}selected{% endif %}>Access</option>
+            <option value="password" {% if current_category == 'password' %}selected{% endif %}>Password</option>
+            <option value="general" {% if current_category == 'general' %}selected{% endif %}>General</option>
+        </select>
+        <select name="priority" onchange="this.form.submit()">
+            <option value="all" {% if current_priority == 'all' %}selected{% endif %}>All Priority</option>
+            <option value="low" {% if current_priority == 'low' %}selected{% endif %}>Low</option>
+            <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="high" {% if current_priority == 'high' %}selected{% endif %}>High</option>
+        </select>
+        {% if current_status != 'all' or current_category != 'all' or current_priority != 'all' %}
+        <a href="/admin" style="font-size: 0.8rem; color: var(--id-danger); text-decoration: none;">
+            <i class="bi bi-x-circle me-1"></i>Clear filters
+        </a>
+        {% endif %}
+    </form>
+
+    {% if tickets %}
+    <div class="table-responsive">
+        <table class="id-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Subject</th>
+                    <th>User</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td style="color: var(--id-text-muted); font-size: 0.82rem;">#{{ ticket.id }}</td>
+                    <td>
+                        <a href="/tickets/{{ ticket.id }}" class="ticket-subject">{{ ticket.subject }}</a>
+                    </td>
+                    <td style="font-size: 0.85rem;">{{ ticket.user.name }}</td>
+                    <td><span class="id-badge" style="background: var(--id-info-light); color: var(--id-info);">{{ ticket.category.value | title }}</span></td>
+                    <td><span class="id-badge {{ ticket.priority.value }}">{{ ticket.priority.value | title }}</span></td>
+                    <td><span class="id-badge {{ ticket.status.value }}">{{ ticket.status.value | replace('_', ' ') | title }}</span></td>
+                    <td style="color: var(--id-text-muted); font-size: 0.82rem;">{{ ticket.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h3>No tickets found</h3>
+        <p>{% if current_status != 'all' or current_category != 'all' or current_priority != 'all' %}No tickets match your current filters.{% else %}No support tickets have been submitted yet.{% endif %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
